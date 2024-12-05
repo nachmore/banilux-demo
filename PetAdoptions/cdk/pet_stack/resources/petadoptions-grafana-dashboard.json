@@ -29,7 +29,7 @@
       },
       "id": 21,
       "panels": [],
-      "title": "PetSite",
+      "title": "BaniluxService",
       "type": "row"
     },
     {
@@ -78,7 +78,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(rate(adot_petsite_petadoptions_total[15m])/rate(adot_petsite_petsearches_total[15m]))* 100",
+          "expr": "(rate(adot_baniluxsvc_petadoptions_total[15m])/rate(adot_baniluxsvc_petsearches_total[15m]))* 100",
           "interval": "",
           "legendFormat": "",
           "queryType": "randomWalk",
@@ -172,7 +172,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "adot_petsite_petsearches_total",
+          "expr": "adot_baniluxsvc_petsearches_total",
           "interval": "",
           "legendFormat": "",
           "queryType": "randomWalk",
@@ -268,7 +268,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(rate(adot_petsite_pet_puppy_searches_total[15m])/rate(adot_petsite_petsearches_total[15m]))*100",
+          "expr": "(rate(adot_baniluxsvc_pet_puppy_searches_total[15m])/rate(adot_baniluxsvc_petsearches_total[15m]))*100",
           "interval": "",
           "legendFormat": "",
           "queryType": "randomWalk",
@@ -364,7 +364,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(rate(adot_petsite_pet_bunny_searches_total[15m])/rate(adot_petsite_petsearches_total[15m]))*100",
+          "expr": "(rate(adot_baniluxsvc_pet_bunny_searches_total[15m])/rate(adot_baniluxsvc_petsearches_total[15m]))*100",
           "interval": "",
           "legendFormat": "",
           "refId": "B"
@@ -459,7 +459,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(rate(adot_petsite_pet_kitten_searches_total[15m])/rate(adot_petsite_petsearches_total[15m]))*100",
+          "expr": "(rate(adot_baniluxsvc_pet_kitten_searches_total[15m])/rate(adot_baniluxsvc_petsearches_total[15m]))*100",
           "interval": "",
           "legendFormat": "",
           "queryType": "randomWalk",

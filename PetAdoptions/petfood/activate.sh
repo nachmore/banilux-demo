@@ -29,7 +29,7 @@ permissions () {
     echo Attaching IAM policy to EKS nodes
 
     echo Fetching EC2 instance profile
-    profile=`aws ec2 describe-instances --filters "Name=tag-key,Values=eks:cluster-name" "Name=tag-value,Values=PetSite" | jq -r .Reservations[].Instances[].IamInstanceProfile.Arn | head -n 1 | cut -f 2 -d '/'`
+    profile=`aws ec2 describe-instances --filters "Name=tag-key,Values=eks:cluster-name" "Name=tag-value,Values=BaniluxService" | jq -r .Reservations[].Instances[].IamInstanceProfile.Arn | head -n 1 | cut -f 2 -d '/'`
     echo Found instance profile: ${profile}
 
     role=`aws iam get-instance-profile --instance-profile-name ${profile} | jq -r .InstanceProfile.Roles[].RoleName`

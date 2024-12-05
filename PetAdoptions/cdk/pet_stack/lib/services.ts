@@ -278,15 +278,15 @@ export class Services extends Stack {
         });
         albSG.addIngressRule(ec2.Peer.anyIpv4(),ec2.Port.tcp(80));
 
-        // PetSite - Create ALB and Target Groups
-        const alb = new elbv2.ApplicationLoadBalancer(this, 'PetSiteLoadBalancer', {
+        // BaniluxService - Create ALB and Target Groups
+        const alb = new elbv2.ApplicationLoadBalancer(this, 'BaniluxServiceLoadBalancer', {
             vpc: theVPC,
             internetFacing: true,
             securityGroup: albSG
         });
         trafficGeneratorService.node.addDependency(alb);
 
-        const targetGroup = new elbv2.ApplicationTargetGroup(this, 'PetSiteTargetGroup', {
+        const targetGroup = new elbv2.ApplicationTargetGroup(this, 'BaniluxServiceTargetGroup', {
             port: 80,
             protocol: elbv2.ApplicationProtocol.HTTP,
             vpc: theVPC,
@@ -296,7 +296,7 @@ export class Services extends Stack {
 
         new ssm.StringParameter(this,"putParamTargetGroupArn",{
             stringValue: targetGroup.targetGroupArn,
-            parameterName: '/eks/petsite/TargetGroupArn'
+            parameterName: '/eks/baniluxsvc/TargetGroupArn'
           })
 
         const listener = alb.addListener('Listener', {
@@ -305,7 +305,7 @@ export class Services extends Stack {
             defaultTargetGroups: [targetGroup],
         });
 
-        // PetAdoptionHistory - attach service to path /petadoptionhistory on PetSite ALB
+        // PetAdoptionHistory - attach service to path /petadoptionhistory on BaniluxService ALB
         const petadoptionshistory_targetGroup = new elbv2.ApplicationTargetGroup(this, 'PetAdoptionsHistoryTargetGroup', {
             port: 80,
             protocol: elbv2.ApplicationProtocol.HTTP,
@@ -329,19 +329,19 @@ export class Services extends Stack {
             parameterName: '/eks/pethistory/TargetGroupArn'
         });
 
-        // PetSite - EKS Cluster
+        // BaniluxService - EKS Cluster
         const clusterAdmin = new iam.Role(this, 'AdminRole', {
             assumedBy: new iam.AccountRootPrincipal()
         });
 
         new ssm.StringParameter(this,"putParam",{
             stringValue: clusterAdmin.roleArn,
-            parameterName: '/eks/petsite/EKSMasterRoleArn'
+            parameterName: '/eks/baniluxsvc/EKSMasterRoleArn'
           })
 
         const secretsKey = new kms.Key(this, 'SecretsKey');
-        const cluster = new eks.Cluster(this, 'petsite', {
-            clusterName: 'PetSite',
+        const cluster = new eks.Cluster(this, 'baniluxsvc', {
+            clusterName: 'BaniluxService',
             mastersRole: clusterAdmin,
             vpc: theVPC,
             defaultCapacity: 2,
@@ -463,7 +463,7 @@ export class Services extends Stack {
             ]);
         }
 
-        var xRayYaml = yaml.loadAll(readFileSync("./resources/k8s_petsite/xray-daemon-config.yaml","utf8")) as Record<string,any>[];
+        var xRayYaml = yaml.loadAll(readFileSync("./resources/k8s_baniluxsvc/xray-daemon-config.yaml","utf8")) as Record<string,any>[];
 
         xRayYaml[0].metadata.annotations["eks.amazonaws.com/role-arn"] = new CfnJson(this, "xray_Role", { value : `${xrayserviceaccount.roleArn}` });
 
@@ -501,7 +501,7 @@ export class Services extends Stack {
             repository: "https://aws.github.io/eks-charts",
             namespace: "kube-system",
             values: {
-            clusterName:"PetSite",
+            clusterName:"BaniluxService",
             serviceAccount:{
                 create: false,
                 name: "alb-ingress-controller"
@@ -528,7 +528,7 @@ export class Services extends Stack {
             logs: {
                 metrics_collected: {
                     kubernetes: {
-                        cluster_name: 'PetSite',
+                        cluster_name: 'BaniluxService',
                         metrics_collection_interval: 60,
                     },
                 },
@@ -536,14 +536,14 @@ export class Services extends Stack {
             },
         });
 
-        fluentbitYaml[6].data['cluster.name'] = 'PetSite';
+        fluentbitYaml[6].data['cluster.name'] = 'BaniluxService';
         fluentbitYaml[6].data['logs.region'] = region;
         fluentbitYaml[7].metadata.annotations['eks.amazonaws.com/role-arn'] = new CfnJson(this, 'cloudwatch_Role', {
             value: `${cwserviceaccount.roleArn}`,
         });
 
         // The `cluster-info` configmap is used by the current Python implementation for the `AwsEksResourceDetector`
-        fluentbitYaml[12].data['cluster.name'] = 'PetSite';
+        fluentbitYaml[12].data['cluster.name'] = 'BaniluxService';
         fluentbitYaml[12].data['logs.region'] = region;
 
         const fluentbitManifest = new eks.KubernetesManifest(this, 'cloudwatcheployment', {
@@ -602,16 +602,16 @@ export class Services extends Stack {
         });
         customWidgetLambdaRole.addToPrincipalPolicy(customWidgetResourceControllerPolicy);
 
-        var petsiteApplicationResourceController = new lambda.Function(this, 'petsite-application-resource-controler', {
+        var baniluxsvcApplicationResourceController = new lambda.Function(this, 'baniluxsvc-application-resource-controler', {
             code: lambda.Code.fromAsset(path.join(__dirname, '/../resources/resource-controller-widget')),
-            handler: 'petsite-application-resource-controler.lambda_handler',
+            handler: 'baniluxsvc-application-resource-controler.lambda_handler',
             memorySize: 128,
             runtime: lambda.Runtime.PYTHON_3_9,
             role: customWidgetLambdaRole,
             timeout: Duration.minutes(10)
         });
-        petsiteApplicationResourceController.addEnvironment("EKS_CLUSTER_NAME", cluster.clusterName);
-        petsiteApplicationResourceController.addEnvironment("ECS_CLUSTER_ARNS", ecsPayForAdoptionCluster.clusterArn + "," +
+        baniluxsvcApplicationResourceController.addEnvironment("EKS_CLUSTER_NAME", cluster.clusterName);
+        baniluxsvcApplicationResourceController.addEnvironment("ECS_CLUSTER_ARNS", ecsPayForAdoptionCluster.clusterArn + "," +
             ecsPetListAdoptionCluster.clusterArn + "," + ecsPetSearchCluster.clusterArn);
 
         var customWidgetFunction = new lambda.Function(this, 'cloudwatch-custom-widget', {
@@ -622,7 +622,7 @@ export class Services extends Stack {
             role: customWidgetLambdaRole,
             timeout: Duration.seconds(60)
         });
-        customWidgetFunction.addEnvironment("CONTROLER_LAMBDA_ARN", petsiteApplicationResourceController.functionArn);
+        customWidgetFunction.addEnvironment("CONTROLER_LAMBDA_ARN", baniluxsvcApplicationResourceController.functionArn);
         customWidgetFunction.addEnvironment("EKS_CLUSTER_NAME", cluster.clusterName);
         customWidgetFunction.addEnvironment("ECS_CLUSTER_ARNS", ecsPayForAdoptionCluster.clusterArn + "," +
             ecsPetListAdoptionCluster.clusterArn + "," + ecsPetSearchCluster.clusterArn);
@@ -630,8 +630,8 @@ export class Services extends Stack {
         var costControlDashboardBody = readFileSync("./resources/cw_dashboard_cost_control.json","utf-8");
         costControlDashboardBody = costControlDashboardBody.replaceAll("{{YOUR_LAMBDA_ARN}}",customWidgetFunction.functionArn);
 
-        const petSiteCostControlDashboard = new cloudwatch.CfnDashboard(this, "PetSiteCostControlDashboard", {
-            dashboardName: "PetSite_Cost_Control_Dashboard",
+        const BaniluxsvcCostControlDashboard = new cloudwatch.CfnDashboard(this, "BaniluxServiceCostControlDashboard", {
+            dashboardName: "BaniluxService_Cost_Control_Dashboard",
             dashboardBody: costControlDashboardBody
         });
 
@@ -651,7 +651,7 @@ export class Services extends Stack {
             opsCenterEnabled: true,
         });
         // Adding dependency to create these resources at last
-        servicesCfnGroup.node.addDependency(petSiteCostControlDashboard);
+        servicesCfnGroup.node.addDependency(BaniluxsvcCostControlDashboard);
         servicesCfnApplication.node.addDependency(servicesCfnGroup);
         // Adding a Lambda function to produce the errors - manually executed
         var dynamodbQueryLambdaRole = new iam.Role(this, 'dynamodbQueryLambdaRole', {
@@ -677,7 +677,7 @@ export class Services extends Stack {
             'XRayServiceAccountArn': xrayserviceaccount.roleArn,
             'OIDCProviderUrl': cluster.clusterOpenIdConnectIssuerUrl,
             'OIDCProviderArn': cluster.openIdConnectProvider.openIdConnectProviderArn,
-            'PetSiteUrl': `http://${alb.loadBalancerDnsName}`,
+            'BaniluxServiceUrl': `http://${alb.loadBalancerDnsName}`,
             'DynamoDBQueryFunction': dynamodbQueryFunction.functionName
         })));
 
@@ -704,10 +704,10 @@ export class Services extends Stack {
             '/banilux/rdssecretarn': `${auroraCluster.secret?.secretArn}`,
             '/banilux/rdsendpoint': auroraCluster.clusterEndpoint.hostname,
             '/banilux/stackname': stackName,
-            '/banilux/petsiteurl': `http://${alb.loadBalancerDnsName}`,
+            '/banilux/baniluxsvcurl': `http://${alb.loadBalancerDnsName}`,
             '/banilux/pethistoryurl': `http://${alb.loadBalancerDnsName}/petadoptionshistory`,
-            '/eks/petsite/OIDCProviderUrl': cluster.clusterOpenIdConnectIssuerUrl,
-            '/eks/petsite/OIDCProviderArn': cluster.openIdConnectProvider.openIdConnectProviderArn,
+            '/eks/baniluxsvc/OIDCProviderUrl': cluster.clusterOpenIdConnectIssuerUrl,
+            '/eks/baniluxsvc/OIDCProviderArn': cluster.openIdConnectProvider.openIdConnectProviderArn,
             '/banilux/errormode1':"false"
         })));
 

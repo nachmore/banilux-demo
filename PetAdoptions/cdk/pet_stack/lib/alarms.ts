@@ -8,7 +8,7 @@ export class CloudWatchAlarms extends Stack {
     readonly listAdoptionLatencyAlarm: IAlarm;
     readonly statusUpdaterServiceFaultAlarm: IAlarm;
     readonly payForAdoptionFaultRateAlarm: IAlarm;
-    readonly petSiteApplicationErrorAlarm: IAlarm;
+    readonly BaniluxsvcApplicationErrorAlarm: IAlarm;
     readonly petSearchFaultRateAlarm: IAlarm;
 
     constructor(scope: Construct, id: string, props: StackProps) {
@@ -16,7 +16,7 @@ export class CloudWatchAlarms extends Stack {
 
         // Alarm for test scenario: DDB Throttle
         const listAdoptionLatencyMetric = new Metric({
-            namespace: 'PetSite',
+            namespace: 'BaniluxService',
             metricName: 'Time',
             statistic: 'p99',
             period: Duration.minutes(1),
@@ -80,8 +80,8 @@ export class CloudWatchAlarms extends Stack {
         });
 
         // Alarm for test scenario: SNS msg size limit exceeded
-        const petSiteErrorRate = new Metric({
-            namespace: 'PetSite',
+        const BaniluxsvcErrorRate = new Metric({
+            namespace: 'BaniluxService',
             metricName: 'Time',
             statistic: 'SampleCount',
             region: this.region,
@@ -93,21 +93,21 @@ export class CloudWatchAlarms extends Stack {
             period: Duration.minutes(1),
         });
 
-        const petSiteErrorRateExpression = new MathExpression({
-            label: 'petSiteErrorRate',
+        const BaniluxsvcErrorRateExpression = new MathExpression({
+            label: 'BaniluxsvcErrorRate',
             usingMetrics: {
-                petSiteErrorRate: petSiteErrorRate,
+                BaniluxsvcErrorRate: BaniluxsvcErrorRate,
             },
-            expression: 'FILL(petSiteErrorRate, 0)',
+            expression: 'FILL(BaniluxsvcErrorRate, 0)',
             period: Duration.minutes(1),
         });
 
-        this.petSiteApplicationErrorAlarm = new Alarm(this, 'PetSiteApplicationErrorAlarm', {
-            alarmDescription: 'Alarm showing 500 status code error in PetSite API requests',
-            metric: petSiteErrorRateExpression,
+        this.BaniluxsvcApplicationErrorAlarm = new Alarm(this, 'BaniluxServiceApplicationErrorAlarm', {
+            alarmDescription: 'Alarm showing 500 status code error in BaniluxService API requests',
+            metric: BaniluxsvcErrorRateExpression,
             threshold: 50,
             evaluationPeriods: 1,
-            alarmName: 'PetSiteApplicationErrorAlarm',
+            alarmName: 'BaniluxServiceApplicationErrorAlarm',
         });
 
         // Alarm for test scenario: Network Interruption

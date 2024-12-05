@@ -19,7 +19,7 @@ export class PetAdoptionsHistory extends EksApplication {
   constructor(scope: Construct, id: string, props: PetAdoptionsHistoryProps) {
     super(scope, id, props);
 
-    const petadoptionhistoryserviceaccount = new iam.Role(this, 'PetSiteServiceAccount', {
+    const petadoptionhistoryserviceaccount = new iam.Role(this, 'BaniluxServiceServiceAccount', {
 //        assumedBy: eksFederatedPrincipal,
         assumedBy: new iam.AccountRootPrincipal(),
         managedPolicies: [
@@ -103,7 +103,7 @@ export class PetAdoptionsHistory extends EksApplication {
     deploymentYaml[2].spec.template.spec.containers[1].env[0].value = props.region;
     deploymentYaml[3].spec.targetGroupARN = props.targetGroupArn;
 
-    const deploymentManifest = new eks.KubernetesManifest(this,"petsitedeployment",{
+    const deploymentManifest = new eks.KubernetesManifest(this,"baniluxsvcdeployment",{
         cluster: props.cluster,
         manifest: deploymentYaml
     });

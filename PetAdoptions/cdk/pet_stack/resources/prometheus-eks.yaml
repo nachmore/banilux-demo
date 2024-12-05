@@ -14,8 +14,8 @@ metadata:
   name: cwagent-prometheus
   namespace: amazon-cloudwatch
   annotations:
-    eks.amazonaws.com/role-arn: {{cw_sa_role}}  
-    
+    eks.amazonaws.com/role-arn: {{cw_sa_role}}
+
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -217,7 +217,7 @@ data:
                 },
                 {
                   "source_labels": ["job"],
-                  "label_matcher": "PetSite",
+                  "label_matcher": "BaniluxService",
                   "dimensions": [["ClusterName","Namespace"]],
                   "metric_selectors": [
                     "^process_cpu_seconds_total$",
@@ -231,7 +231,7 @@ data:
                 },
                 {
                   "source_labels": ["job"],
-                  "label_matcher": "^PetSite$",
+                  "label_matcher": "^BaniluxService$",
                   "dimensions": [["ClusterName","Namespace"]],
                   "metric_selectors": [
                     "^dotnet_total_memory_bytes$",
@@ -247,7 +247,7 @@ data:
                 },
                 {
                   "source_labels": ["job"],
-                  "label_matcher": "^PetSite$",
+                  "label_matcher": "^BaniluxService$",
                   "dimensions": [["ClusterName","Namespace","gc_heap"]],
                   "metric_selectors": [
                     "^dotnet_gc_allocated_bytes_total$"
@@ -255,14 +255,14 @@ data:
                 },
                 {
                   "source_labels": ["job"],
-                  "label_matcher": "PetSite",
+                  "label_matcher": "BaniluxService",
                   "dimensions": [["ClusterName","Namespace","app"]],
                   "metric_selectors": [
-                    "^petsite_pets_waiting_for_adoption$",
-                    "^petsite_pet_kitten_searches_total$",
-                    "^petsite_pet_puppy_searches_total$",
-                    "^petsite_pet_bunny_searches_total$",
-                    "^petsite_petsearches_total$"
+                    "^baniluxsvc_pets_waiting_for_adoption$",
+                    "^baniluxsvc_pet_kitten_searches_total$",
+                    "^baniluxsvc_pet_puppy_searches_total$",
+                    "^baniluxsvc_pet_bunny_searches_total$",
+                    "^baniluxsvc_petsearches_total$"
                   ]
                 }
               ]
@@ -477,7 +477,7 @@ data:
         regex: 'jvm_gc_collection_seconds.*'
         action: drop
 
-    - job_name: 'PetSite'
+    - job_name: 'BaniluxService'
       sample_limit: 10000
       metrics_path: /metrics
       kubernetes_sd_configs:

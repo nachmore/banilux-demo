@@ -87,9 +87,9 @@ Resources:
                       "sd_metrics_path": "/stats/prometheus"
                     },
                     {
-                      "sd_job_name": "petsite-webapp",
+                      "sd_job_name": "baniluxsvc-webapp",
                       "sd_metrics_ports": "80",
-                      "sd_task_definition_arn_pattern": ".*:task-definition/Servicespetsite.*:[0-9]+",
+                      "sd_task_definition_arn_pattern": ".*:task-definition/Servicesbaniluxsvc.*:[0-9]+",
                       "sd_metrics_path": "/metrics"
                     }
                   ]
@@ -187,9 +187,9 @@ Resources:
                       "label_matcher": "container",
                       "dimensions": [["ClusterName","TaskGroup"]],
                       "metric_selectors": [
-                      "petsite_pet_bunny_searches_total",
-                      "petsite_pets_waiting_for_adoption",
-                      "petsite_petadoptions_total"
+                      "baniluxsvc_pet_bunny_searches_total",
+                      "baniluxsvc_pets_waiting_for_adoption",
+                      "baniluxsvc_petadoptions_total"
                       ]
                     }
                   ]

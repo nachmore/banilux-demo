@@ -1,5 +1,5 @@
 #!/bin/bash -e
-CLUSTER_NAME=PetSite
+CLUSTER_NAME=BaniluxService
 SERVICE_ACCOUNT_AMP_NAMESPACE=prometheus
 SERVICE_ACCOUNT_AMG_NAMESPACE=grafana
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
@@ -61,7 +61,7 @@ function getRoleArn() {
 # Create the IAM Role for ingest with the above trust policy
 #
 SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE_ARN=$(getRoleArn $SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE)
-if [ "$SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE_ARN" = "" ]; 
+if [ "$SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE_ARN" = "" ];
 then
   #
   # Create the IAM role for service account
@@ -70,7 +70,7 @@ then
   --role-name $SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE \
   --assume-role-policy-document file://TrustPolicy.json \
   --query "Role.Arn" --output text)
-  
+
   # Attach managed policy to ingest metrics into AMP
   aws iam attach-role-policy \
   --role-name $SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE \
@@ -79,7 +79,7 @@ then
   # Attach managed policy to query metrics from AMP
   aws iam attach-role-policy \
   --role-name $SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE \
-  --policy-arn "arn:aws:iam::aws:policy/AmazonPrometheusQueryAccess"  
+  --policy-arn "arn:aws:iam::aws:policy/AmazonPrometheusQueryAccess"
 else
     echo "$SERVICE_ACCOUNT_IAM_AMP_INGEST_ROLE_ARN IAM role for ingest already exists"
 fi

@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    eks.amazonaws.com/role-arn: "{{Baniluxsvc_SA_ROLE}}"
+  name: baniluxsvc-sa
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-baniluxsvc
+  namespace: default
+  annotations:
+    scrape: "true"
+    prometheus.io/scrape: "true"
+spec:
+  ports:
+    - port: 80
+      nodePort: 30300
+      targetPort: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: baniluxsvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baniluxsvc-deployment
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: baniluxsvc
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: baniluxsvc
+    spec:
+      serviceAccountName: baniluxsvc-sa
+      containers:
+        - image: "{{ECR_IMAGE_URL}}"
+          imagePullPolicy: Always
+          name: baniluxsvc
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: AWS_XRAY_DAEMON_ADDRESS
+              value: xray-service.default:2000
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+---
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: baniluxsvc-tgb
+spec:
+  serviceRef:
+    name: service-baniluxsvc
+    port: 80
+  targetGroupARN: "<arn-to-targetGroup>"
+  targetType: ip

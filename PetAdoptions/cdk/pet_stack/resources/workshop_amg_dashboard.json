@@ -2236,8 +2236,8 @@
         "allValue": null,
         "current": {
           "selected": true,
-          "text": "PetSite",
-          "value": "PetSite"
+          "text": "BaniluxService",
+          "value": "BaniluxService"
         },
         "datasource": "${datasource}",
         "definition": "resource_arns($awsregion,eks:nodegroup,{\"Workshop\":[\"true\"]})",

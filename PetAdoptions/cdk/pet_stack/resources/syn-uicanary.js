@@ -3,7 +3,7 @@ const log = require('SyntheticsLogger');
 
 const flowBuilderBlueprint = async function () {
     // INSERT URL here
-    //let url = "http://petsite-1081345346.us-east-1.elb.amazonaws.com/";
+    //let url = "http://baniluxsvc-1081345346.us-east-1.elb.amazonaws.com/";
     let url = "<WEBSITE_URL>";
 
     let page = await synthetics.getPage();

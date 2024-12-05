@@ -17,10 +17,10 @@ namespace trafficgenerator
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        
+
         private HttpClient _httpClient;
         private List<Pet> _allPets;
-        private string _petSiteUrl;
+        private string _BaniluxsvcUrl;
         private string _petSearchUrl;
         private string _trafficdelaytime;
 
@@ -29,10 +29,10 @@ namespace trafficgenerator
             _logger = logger;
 
             _httpClient = new HttpClient();
-            _petSiteUrl = configuration["petsiteurl"];
+            _BaniluxsvcUrl = configuration["baniluxsvcurl"];
             _petSearchUrl = configuration["searchapiurl"];
             _trafficdelaytime = configuration["trafficdelaytime"];
-            
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -48,9 +48,9 @@ namespace trafficgenerator
                     Int32.TryParse(_trafficdelaytime, out int delaytime);
 
                     delaytime = delaytime == 0 ? 1 : delaytime;
-                    
+
                     _logger.LogInformation($"Delay time : {delaytime * 20} seconds");
-                    
+
                     await Task.Delay(delaytime * 20000, stoppingToken);
                 }
                 catch (Exception e)
@@ -65,7 +65,7 @@ namespace trafficgenerator
         private async Task LoadPetData()
         {
           //  Console.WriteLine($"Search URL: {_petSearchUrl}");
-          
+
           // Loads the Petdata from DynamoDB into memory
             _allPets = JsonSerializer.Deserialize<List<Pet>>(
                 await _httpClient.GetStringAsync(_petSearchUrl));
@@ -76,8 +76,8 @@ namespace trafficgenerator
             _logger.LogInformation("Synchronous Housekeeping call");
             // Performs housekeeping. Basically, reset the application data and gets ready for the execution cycle
             _httpClient.GetAsync(
-                $"{_petSiteUrl}/housekeeping/").Wait();
-            
+                $"{_BaniluxsvcUrl}/housekeeping/").Wait();
+
             _logger.LogInformation("Starting Async LoadPetData");
 
             await LoadPetData();
@@ -86,31 +86,31 @@ namespace trafficgenerator
             Random random = new Random();
             var loadSize = random.Next(5, _allPets.Count);
 
-         //   Console.WriteLine($"PetSite URL: {_petSiteUrl}");
+         //   Console.WriteLine($"BaniluxService URL: {_BaniluxsvcUrl}");
 
             if (loadSize > 20)
             {
-                await _httpClient.DeleteAsync($"{_petSiteUrl}/pethistory/deletepetadoptionshistory");
+                await _httpClient.DeleteAsync($"{_BaniluxsvcUrl}/pethistory/deletepetadoptionshistory");
                 _logger.LogInformation("Deleted PetAdoptions History");
             }
             else
             {
-                await _httpClient.GetAsync($"{_petSiteUrl}/pethistory");
+                await _httpClient.GetAsync($"{_BaniluxsvcUrl}/pethistory");
             }
 
-            
+
             for (int i = 0; i < loadSize; i++)
             {
                 var currentPet = _allPets[random.Next(0, _allPets.Count - 1)];
 
-             //   Console.WriteLine($"Searching: {_petSiteUrl}/?selectedPetType={currentPet.pettype}&selectedPetColor={currentPet.petcolor}");
-                
-             //Performs a search query   
-             await _httpClient.GetAsync(
-                    $"{_petSiteUrl}/?selectedPetType={currentPet.pettype}&selectedPetColor={currentPet.petcolor}");
+             //   Console.WriteLine($"Searching: {_BaniluxsvcUrl}/?selectedPetType={currentPet.pettype}&selectedPetColor={currentPet.petcolor}");
 
-             // Performs the "TakeMeHome" action on the current Pet in context  
-             await _httpClient.PostAsync($"{_petSiteUrl}/Adoption/TakeMeHome",
+             //Performs a search query
+             await _httpClient.GetAsync(
+                    $"{_BaniluxsvcUrl}/?selectedPetType={currentPet.pettype}&selectedPetColor={currentPet.petcolor}");
+
+             // Performs the "TakeMeHome" action on the current Pet in context
+             await _httpClient.PostAsync($"{_BaniluxsvcUrl}/Adoption/TakeMeHome",
                     new StringContent(
                         $"pettype={currentPet.pettype}&" +
                         $"petcolor={currentPet.petcolor}&" +
@@ -118,7 +118,7 @@ namespace trafficgenerator
                         Encoding.Default, "application/x-www-form-urlencoded"));
 
              // Completes adoption by making the payment
-                await _httpClient.PostAsync($"{_petSiteUrl}/Payment/MakePayment",
+                await _httpClient.PostAsync($"{_BaniluxsvcUrl}/Payment/MakePayment",
                     new StringContent(
                         $"pettype={currentPet.pettype}&" +
                         $"petid={currentPet.petid}",
@@ -126,7 +126,7 @@ namespace trafficgenerator
 
                 // Lists all adopted pets
                 await _httpClient.GetAsync(
-                    $"{_petSiteUrl}/PetListAdoptions");
+                    $"{_BaniluxsvcUrl}/PetListAdoptions");
             }
 
 

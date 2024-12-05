@@ -16,15 +16,15 @@ export class Applications extends Stack {
 
     const stackName = id;
 
-    const roleArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getParamClusterAdmin', { parameterName: "/eks/petsite/EKSMasterRoleArn"}).stringValue;
-    const targetGroupArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getParamTargetGroupArn', { parameterName: "/eks/petsite/TargetGroupArn"}).stringValue;
-    const oidcProviderUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'getOIDCProviderUrl', { parameterName: "/eks/petsite/OIDCProviderUrl"}).stringValue;
-    const oidcProviderArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getOIDCProviderArn', { parameterName: "/eks/petsite/OIDCProviderArn"}).stringValue;
+    const roleArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getParamClusterAdmin', { parameterName: "/eks/baniluxsvc/EKSMasterRoleArn"}).stringValue;
+    const targetGroupArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getParamTargetGroupArn', { parameterName: "/eks/baniluxsvc/TargetGroupArn"}).stringValue;
+    const oidcProviderUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'getOIDCProviderUrl', { parameterName: "/eks/baniluxsvc/OIDCProviderUrl"}).stringValue;
+    const oidcProviderArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getOIDCProviderArn', { parameterName: "/eks/baniluxsvc/OIDCProviderArn"}).stringValue;
     const rdsSecretArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getRdsSecretArn', { parameterName: "/banilux/rdssecretarn"}).stringValue;
     const petHistoryTargetGroupArn = ssm.StringParameter.fromStringParameterAttributes(this, 'getPetHistoryParamTargetGroupArn', { parameterName: "/eks/pethistory/TargetGroupArn"}).stringValue;
 
     const cluster = eks.Cluster.fromClusterAttributes(this, 'MyCluster', {
-      clusterName: 'PetSite',
+      clusterName: 'BaniluxService',
       kubectlRoleArn: roleArn,
     });
     // ClusterID is not available for creating the proper conditions https://github.com/aws/aws-cdk/issues/10347
@@ -52,14 +52,14 @@ export class Applications extends Stack {
 
 
     // FrontEnd SA (SSM, SQS, SNS)
-    const baniluxserviceaccount = new iam.Role(this, 'PetSiteServiceAccount', {
+    const baniluxserviceaccount = new iam.Role(this, 'BaniluxServiceServiceAccount', {
 //                assumedBy: eksFederatedPrincipal,
             assumedBy: new iam.AccountRootPrincipal(),
         managedPolicies: [
-            iam.ManagedPolicy.fromManagedPolicyArn(this, 'PetSiteServiceAccount-AmazonSSMFullAccess', 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'),
-            iam.ManagedPolicy.fromManagedPolicyArn(this, 'PetSiteServiceAccount-AmazonSQSFullAccess', 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'),
-            iam.ManagedPolicy.fromManagedPolicyArn(this, 'PetSiteServiceAccount-AmazonSNSFullAccess', 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'),
-            iam.ManagedPolicy.fromManagedPolicyArn(this, 'PetSiteServiceAccount-AWSXRayDaemonWriteAccess', 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess')
+            iam.ManagedPolicy.fromManagedPolicyArn(this, 'BaniluxServiceServiceAccount-AmazonSSMFullAccess', 'arn:aws:iam::aws:policy/AmazonSSMFullAccess'),
+            iam.ManagedPolicy.fromManagedPolicyArn(this, 'BaniluxServiceServiceAccount-AmazonSQSFullAccess', 'arn:aws:iam::aws:policy/AmazonSQSFullAccess'),
+            iam.ManagedPolicy.fromManagedPolicyArn(this, 'BaniluxServiceServiceAccount-AmazonSNSFullAccess', 'arn:aws:iam::aws:policy/AmazonSNSFullAccess'),
+            iam.ManagedPolicy.fromManagedPolicyArn(this, 'BaniluxServiceServiceAccount-AWSXRayDaemonWriteAccess', 'arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess')
         ],
     });
     baniluxserviceaccount.assumeRolePolicy?.addStatements(app_trustRelationship);
@@ -74,19 +74,19 @@ export class Applications extends Stack {
 
     baniluxserviceaccount.addToPrincipalPolicy(startStepFnExecutionPolicy);
 
-    const petsiteAsset = new DockerImageAsset(this, 'petsiteAsset', {
-        directory: "./resources/microservices/petsite/petsite/"
+    const baniluxsvcAsset = new DockerImageAsset(this, 'baniluxsvcAsset', {
+        directory: "./resources/microservices/baniluxsvc/baniluxsvc/"
     });
 
 
-    var manifest = readFileSync("./resources/k8s_petsite/deployment.yaml","utf8");
+    var manifest = readFileSync("./resources/k8s_baniluxsvc/deployment.yaml","utf8");
     var deploymentYaml = yaml.loadAll(manifest) as Record<string,any>[];
 
     deploymentYaml[0].metadata.annotations["eks.amazonaws.com/role-arn"] = new CfnJson(this, "deployment_Role", { value : `${baniluxserviceaccount.roleArn}` });
-    deploymentYaml[2].spec.template.spec.containers[0].image = new CfnJson(this, "deployment_Image", { value : `${petsiteAsset.imageUri}` });
+    deploymentYaml[2].spec.template.spec.containers[0].image = new CfnJson(this, "deployment_Image", { value : `${baniluxsvcAsset.imageUri}` });
     deploymentYaml[3].spec.targetGroupARN = new CfnJson(this,"targetgroupArn", { value: `${targetGroupArn}`})
 
-    const deploymentManifest = new eks.KubernetesManifest(this,"petsitedeployment",{
+    const deploymentManifest = new eks.KubernetesManifest(this,"baniluxsvcdeployment",{
         cluster: cluster,
         manifest: deploymentYaml
     });
@@ -113,11 +113,11 @@ export class Applications extends Stack {
     });
 
     this.createSsmParameters(new Map(Object.entries({
-        '/eks/petsite/stackname': stackName
+        '/eks/baniluxsvc/stackname': stackName
     })));
 
     this.createOuputs(new Map(Object.entries({
-        'PetSiteECRImageURL': petsiteAsset.imageUri,
+        'BaniluxServiceECRImageURL': baniluxsvcAsset.imageUri,
         'baniluxServiceAccountArn': baniluxserviceaccount.roleArn,
     })));
     // Creating AWS Resource Group for all the resources of stack.

@@ -10,15 +10,15 @@ if [ -z "$AWS_REGION" ]; then
 fi
 
 # Disable Contributor Insights
-DDB_CONTRIB=$(aws ssm get-parameter --name '/banilux/dynamodbtablename' | jq .Parameter.Value -r)
+DDB_CONTRIB=$(aws ssm get-parameter --name '/petstore/dynamodbtablename' | jq .Parameter.Value -r)
 aws dynamodb update-contributor-insights --table-name $DDB_CONTRIB --contributor-insights-action DISABLE
 
 echo STARTING SERVICES CLEANUP
 echo -----------------------------
 
 # Get the main stack name
-STACK_NAME=$(aws ssm get-parameter --name '/banilux/stackname' --region $AWS_REGION | jq .Parameter.Value -r)
-STACK_NAME_APP=$(aws ssm get-parameter --name '/eks/petsite/stackname' --region $AWS_REGION | jq .Parameter.Value -r)
+STACK_NAME=$(aws ssm get-parameter --name '/petstore/stackname' --region $AWS_REGION | jq .Parameter.Value -r)
+STACK_NAME_APP=$(aws ssm get-parameter --name '/eks/baniluxsvc/stackname' --region $AWS_REGION | jq .Parameter.Value -r)
 
 # Set default name in case Parameters are gone (partial deletion)
 if [ -z $STACK_NAME ]; then STACK_NAME="Services"; fi
@@ -26,7 +26,7 @@ if [ -z $STACK_NAME_APP ]; then STACK_NAME_APP="Applications"; fi
 if [ -z $STACK_NAME_CODEPIPELINE ]; then STACK_NAME_CODEPIPELINE="Banilux"; fi
 
 # Fix for CDK teardown issues
-aws eks update-kubeconfig --name PetSite
+aws eks update-kubeconfig --name BaniluxService
 kubectl delete -f https://github.com/nachmore/banilux-demo/main/PetAdoptions/cdk/pet_stack/resources/load_balancer/crds.yaml
 
 #Deleting keycloak
