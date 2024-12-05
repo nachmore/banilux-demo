@@ -8,7 +8,7 @@ export class CloudWatchAlarms extends Stack {
     readonly listAdoptionLatencyAlarm: IAlarm;
     readonly statusUpdaterServiceFaultAlarm: IAlarm;
     readonly payForAdoptionFaultRateAlarm: IAlarm;
-    readonly BaniluxsvcApplicationErrorAlarm: IAlarm;
+    readonly baniluxsvcApplicationErrorAlarm: IAlarm;
     readonly petSearchFaultRateAlarm: IAlarm;
 
     constructor(scope: Construct, id: string, props: StackProps) {
@@ -80,7 +80,7 @@ export class CloudWatchAlarms extends Stack {
         });
 
         // Alarm for test scenario: SNS msg size limit exceeded
-        const BaniluxsvcErrorRate = new Metric({
+        const baniluxsvcErrorRate = new Metric({
             namespace: 'BaniluxService',
             metricName: 'Time',
             statistic: 'SampleCount',
@@ -93,18 +93,18 @@ export class CloudWatchAlarms extends Stack {
             period: Duration.minutes(1),
         });
 
-        const BaniluxsvcErrorRateExpression = new MathExpression({
-            label: 'BaniluxsvcErrorRate',
+        const baniluxsvcErrorRateExpression = new MathExpression({
+            label: 'baniluxsvcErrorRate',
             usingMetrics: {
-                BaniluxsvcErrorRate: BaniluxsvcErrorRate,
+                baniluxsvcErrorRate: baniluxsvcErrorRate,
             },
-            expression: 'FILL(BaniluxsvcErrorRate, 0)',
+            expression: 'FILL(baniluxsvcErrorRate, 0)',
             period: Duration.minutes(1),
         });
 
-        this.BaniluxsvcApplicationErrorAlarm = new Alarm(this, 'BaniluxServiceApplicationErrorAlarm', {
+        this.baniluxsvcApplicationErrorAlarm = new Alarm(this, 'BaniluxServiceApplicationErrorAlarm', {
             alarmDescription: 'Alarm showing 500 status code error in BaniluxService API requests',
-            metric: BaniluxsvcErrorRateExpression,
+            metric: baniluxsvcErrorRateExpression,
             threshold: 50,
             evaluationPeriods: 1,
             alarmName: 'BaniluxServiceApplicationErrorAlarm',

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    eks.amazonaws.com/role-arn: "{{Baniluxsvc_SA_ROLE}}"
+    eks.amazonaws.com/role-arn: "{{baniluxsvc_SA_ROLE}}"
   name: pethistory-sa
   namespace: default
 ---

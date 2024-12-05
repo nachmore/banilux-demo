@@ -13,7 +13,7 @@
                     "resize": true,
                     "timeRange": true
                 },
-                "title": "Baniluxsvc Resource Controller"
+                "title": "baniluxsvc Resource Controller"
             }
         }
     ]

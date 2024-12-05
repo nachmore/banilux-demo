@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import { Services } from '../lib/services';
 import { Applications } from '../lib/applications';
-//import { EKSBaniluxsvc } from '../lib/eksbaniluxsvc'
+//import { EKSbaniluxsvc } from '../lib/eksbaniluxsvc'
 import { App, Tags, Aspects } from 'aws-cdk-lib';
 import {CloudWatchAlarms} from "../lib/alarms";
 //import { AwsSolutionsChecks } from 'cdk-nag';

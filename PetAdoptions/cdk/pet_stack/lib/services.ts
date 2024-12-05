@@ -630,7 +630,7 @@ export class Services extends Stack {
         var costControlDashboardBody = readFileSync("./resources/cw_dashboard_cost_control.json","utf-8");
         costControlDashboardBody = costControlDashboardBody.replaceAll("{{YOUR_LAMBDA_ARN}}",customWidgetFunction.functionArn);
 
-        const BaniluxsvcCostControlDashboard = new cloudwatch.CfnDashboard(this, "BaniluxServiceCostControlDashboard", {
+        const baniluxsvcCostControlDashboard = new cloudwatch.CfnDashboard(this, "BaniluxServiceCostControlDashboard", {
             dashboardName: "BaniluxService_Cost_Control_Dashboard",
             dashboardBody: costControlDashboardBody
         });
@@ -651,7 +651,7 @@ export class Services extends Stack {
             opsCenterEnabled: true,
         });
         // Adding dependency to create these resources at last
-        servicesCfnGroup.node.addDependency(BaniluxsvcCostControlDashboard);
+        servicesCfnGroup.node.addDependency(baniluxsvcCostControlDashboard);
         servicesCfnApplication.node.addDependency(servicesCfnGroup);
         // Adding a Lambda function to produce the errors - manually executed
         var dynamodbQueryLambdaRole = new iam.Role(this, 'dynamodbQueryLambdaRole', {
