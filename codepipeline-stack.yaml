@@ -278,7 +278,7 @@ Resources:
                 - CDK_STACK=$(aws cloudformation list-stacks --query 'StackSummaries[?(StackName==`CDKToolkit` && StackStatus==`CREATE_COMPLETE`)].StackId' --output text)
             build:
               commands:
-                - git clone --single-branch --depth 1 --branch ${GITHUB_BRANCH} https://github.com/Eric-YJi/one-observability-demo.git
+                - git clone --single-branch --depth 1 --branch ${GITHUB_BRANCH} https://github.com/nachmore/banilux-demo.git
                 - cd ./one-observability-demo/PetAdoptions/cdk/pet_stack/
                 - npm install
                 - if [ -z "$CDK_STACK" ] ; then cdk bootstrap ; else echo "Already bootstrapped" ; fi
