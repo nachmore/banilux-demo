@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: banilux
+cloud:
+  aws:
+    region:
+      static: eu-west-1
+      auto: false
+server:
+  port: 80
